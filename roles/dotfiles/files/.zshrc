@@ -13,8 +13,6 @@ fi
 # Completion
 #
 
-fpath=($HOME/.zsh/completions $fpath)
-
 autoload -U compinit
 compinit -u
 
@@ -93,34 +91,12 @@ function +vi-git-untracked() {
 
 RPROMPT_BASE="\${vcs_info_msg_0_}%F{blue}%~%f"
 setopt PROMPT_SUBST
-
-# Anonymous function to avoid leaking NBSP variable.
-function () {
-  if [[ -n "$TMUX" ]]; then
-    local LVL=$(($SHLVL - 1))
-  else
-    local LVL=$SHLVL
-  fi
-  if [[ $EUID -eq 0 ]]; then
-    local SUFFIX=$(printf '#%.0s' {1..$LVL})
-  else
-    local SUFFIX=$(printf '\$%.0s' {1..$LVL})
-  fi
-  if [[ -n "$TMUX" ]]; then
-    # Note use a non-breaking space at the end of the prompt because we can use it as
-    # a find pattern to jump back in tmux.
-    local NBSP=' '
-    export PS1="%F{green}${SSH_TTY:+%n@%m}%f%B${SSH_TTY:+:}%b%F{blue}%1~%F{yellow}%B%(1j.*.)%(?..!)%b%f%F{red}%B${SUFFIX}%b%f${NBSP}"
-    export ZLE_RPROMPT_INDENT=0
-  else
-    # Don't bother with ZLE_RPROMPT_INDENT here, because it ends up eating the
-    # space after PS1.
-    export PS1="%F{green}${SSH_TTY:+%n@%m}%f%B${SSH_TTY:+:}%b%F{blue}%1~%F{yellow}%B%(1j.*.)%(?..!)%b%f%F{red}%B${SUFFIX}%b%f "
-  fi
-}
-
+export PS1="%F{green}${SSH_TTY:+%n@%m}%f%B${SSH_TTY:+:}%b%F{blue}%1~%(?..%F{yellow}%B!%b%f)%F{red}%B%(!.#.$)%b%f "
 export RPROMPT=$RPROMPT_BASE
 export SPROMPT="zsh: correct %F{red}'%R'%f to %F{red}'%r'%f [%B%Uy%u%bes, %B%Un%u%bo, %B%Ue%u%bdit, %B%Ua%u%bbort]? "
+if [ $ITERM_SESSION_ID ]; then
+  export PROMPT_COMMAND='echo -ne "\033];${PWD##*/}\007"; ':"$PROMPT_COMMAND";
+fi
 
 #
 # History
@@ -143,7 +119,7 @@ setopt correctall           # argument auto-correction
 setopt noflowcontrol        # disable start (C-s) and stop (C-q) characters
 setopt nonomatch            # unmatched patterns are left unchanged
 setopt histignorealldups    # filter duplicates from history
-setopt histignorespace      # don't record commands starting with a space
+setopt histignorespace      # don''t record commands starting with a space
 setopt histverify           # confirm history expansion (!$, !!, !foo)
 setopt ignoreeof            # prevent accidental C-d from exiting shell
 setopt interactivecomments  # allow comments, even in interactive shells
@@ -177,17 +153,6 @@ bindkey ' ' magic-space # do history expansion on space
 # These are the same but permit patterns (eg. a*b) to be used.
 bindkey "^r" history-incremental-pattern-search-backward
 bindkey "^s" history-incremental-pattern-search-forward
-
-# Make CTRL-Z background things and unbackground them.
-function fg-bg() {
-  if [[ $#BUFFER -eq 0 ]]; then
-    fg
-  else
-    zle push-input
-  fi
-}
-zle -N fg-bg
-bindkey '^Z' fg-bg
 
 #
 # Other
@@ -280,8 +245,6 @@ function report-start-time() {
 
 add-zsh-hook precmd report-start-time
 
-add-zsh-hook precmd bounce
-
 function auto-ls-after-cd() {
   emulate -L zsh
   # Only in response to a user-initiated `cd`, not indirectly (eg. via another
@@ -290,7 +253,7 @@ function auto-ls-after-cd() {
     ls -a
   fi
 }
-add-zsh-hook chpwd auto-ls-after-cd
+# add-zsh-hook chpwd auto-ls-after-cd
 
 # for prompt
 add-zsh-hook precmd vcs_info
@@ -322,3 +285,47 @@ if [ -e /etc/motd ]; then
     tee $HOME/.hushlogin < /etc/motd
   fi
 fi
+ZSH_THEME="pygmalion"
+export ZSH=$HOME/.oh-my-zsh
+plugins=(git k bower docker docker-compose npm nvm vagrant kitchen node rsync tmux man brew)
+source $ZSH/oh-my-zsh.sh
+source $HOME/.antigen/antigen.zsh
+export NVM_DIR="$HOME/.nvm"
+export PKG_CONFIG_PATH=$(brew --prefix pkgconfig)
+source $(brew --prefix nvm)/nvm.sh
+
+antigen bundle zsh-users/zsh-syntax-highlighting
+antigen bundle Seinh/git-prune
+antigen bundle bobthecow/git-flow-completion
+antigen bundle clauswitt/zsh-grunt-plugin
+# antigen bundle supercrabtree/k
+antigen bundle Tarrasch/zsh-bd
+antigen bundle unixorn/autoupdate-antigen.zshplugin
+antigen bundle elstgav/branch-manager
+# antigen bundle unixorn/bitbucket-git-helpers.plugin.zsh
+antigen bundle davidafsilva/vert.x-omz-plugin
+antigen bundle akoenig/npm-run.plugin.zsh
+antigen bundle akoenig/gulp.plugin.zsh
+antigen bundle lukechilds/zsh-better-npm-completion
+# antigen bundle marzocchi/zsh-notify
+antigen bundle zsh-users/zsh-history-substring-search
+antigen bundle sharat87/zsh-vim-mode
+antigen bundle rupa/z
+antigen apply
+
+# alias k=sandbox
+
+
+# zstyle ':notify:*' error-icon "https://media3.giphy.com/media/10ECejNtM1GyRy/200_s.gif"
+# zstyle ':notify:*' error-title "wow such #fail"
+# zstyle ':notify:*' success-icon "https://s-media-cache-ak0.pinimg.com/564x/b5/5a/18/b55a1805f5650495a74202279036ecd2.jpg"
+# zstyle ':notify:*' success-title "very #success. wow"
+function zle-line-init zle-keymap-select {
+    RPS1="${${KEYMAP/vicmd/-- NORMAL --}/(main|viins)/-- INSERT --}"
+    RPS2=$RPS1
+    zle reset-prompt
+}
+
+zle -N zle-line-init
+zle -N zle-keymap-select
+bindkey "^X\x7f" backward-kill-line

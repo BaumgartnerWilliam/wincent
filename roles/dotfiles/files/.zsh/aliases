@@ -21,7 +21,7 @@ alias g=git
 alias groot='cd $(git rev-parse --show-toplevel 2> /dev/null || echo -n ".")'
 alias h=history
 alias j=jump
-alias k='rm -f ~/.ssh/glh@* && ssh sandbox rm -f .clipper.sock'
+# alias k='rm -f ~/.ssh/glh@* && ssh sandbox rm -f .clipper.sock'
 alias l='ls -F'
 alias ll='ls -laF'
 alias m=mosh
@@ -33,10 +33,12 @@ alias s=ssh
 alias serve='python -m SimpleHTTPServer' # optional arg: port (defaults to 8000)
 alias t=tmux
 alias v=vim
+alias ni='npm i'
+alias bi='bower i'
 
-if command -v nvim &> /dev/null; then
-  alias vim=nvim # Use `\vim` or `command vim` to get the real vim.
-fi
+# if command -v nvim &> /dev/null; then
+#   alias vim='mvim -v' # Use `\vim` or `command vim` to get the real vim.
+# fi
 
 #
 # Suffix aliases

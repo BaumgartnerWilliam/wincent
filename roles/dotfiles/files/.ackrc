@@ -1,4 +1,5 @@
 --ignore-dir=coverage
+--ignore-dir=third-party
 --ignore-dir=log
 --ignore-dir=tmp
 --pager=less -iFMRSX
