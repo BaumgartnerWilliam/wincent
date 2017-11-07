@@ -30,6 +30,7 @@ dotfiles:
   - .tmux.conf
   - .urlview
   - .vim
+  - .eslintrc
   - .zsh
   - .zshenv
   - .zshrc
